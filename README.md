@@ -33,6 +33,49 @@ Reproducible implementation of a self-supervised learning and segmentation pipel
 - `train_swav.py`: Self-supervised training
 - `train_unet.py`: Supervised fine-tuning
 - `eval_unet.py`: Evaluation and visualization
+- `l4s_dataset.py`: Dataset utilities for the Landslide4Sense HDF5 files
+
+## Dataset
+
+The `Landslide4Sense` dataset consists of multispectral image patches stored as
+HDF5 files. Download the training images and masks from the official release or
+the HuggingFace mirror and organize them as:
+
+```
+data/
+  TrainData/
+    img/
+      image_1.h5
+      ...
+    mask/
+      image_1.h5
+      ...
+```
+
+`l4s_dataset.py` provides `L4SUnlabeledDataset` and `L4SSegmentationDataset`
+to load these files for SwAV pre-training and U-Net fine-tuning respectively.
+
+## Usage
+
+1. **Pre-train the encoder**
+
+   ```bash
+   python train_swav.py --img_dir data/TrainData/img --epochs 200 --batch_size 32
+   ```
+
+   This saves `swav_checkpoint_final.pth` with the learned weights.
+
+2. **Fine-tune the U-Net**
+
+   ```bash
+   python train_unet.py \
+       --img_dir data/TrainData/img \
+       --mask_dir data/TrainData/mask \
+       --checkpoint swav_checkpoint_final.pth \
+       --epochs 1000 --batch_size 16
+   ```
+
+   Only the decoder parameters are trained while the encoder is frozen.
 
 
 ## TODO
@@ -43,12 +86,12 @@ Reproducible implementation of a self-supervised learning and segmentation pipel
 - [x] Implement U-Net with frozen encoder
 - [x] SwAV and U-Net training scripts
 - [x] Evaluation and visualization script
-- [ ] Adapt reading of multispectral images (>3 channels) in datasets
+- [x] Adapt reading of multispectral images (>3 channels) in datasets
 - [ ] Add support for different band combinations (RGB, RGB+NIR+Slope, etc.)
 - [ ] Improve result visualization (overlays, batch metrics)
 - [ ] Add validation and early stopping
 - [ ] Document dependencies and environment (requirements.txt)
-- [ ] Add usage examples and expected results
+- [x] Add usage examples and expected results
 
 ## References
 
